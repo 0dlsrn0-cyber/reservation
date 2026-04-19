@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 - 대광로제비앙</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-back" onclick="goTo('index')">←</div>
+      <div>
+        <div class="header-title">관리자</div>
+        <div class="header-subtitle">ADMINISTRATOR</div>
+      </div>
+    </div>
+
+    <!-- 비밀번호 -->
+    <div class="password-screen" id="passwordSection">
+      <div class="password-icon">🔒</div>
+      <h2 class="password-title">관리자 인증</h2>
+      <p class="password-desc">비밀번호를 입력해주세요</p>
+      <div class="password-input-wrap">
+        <input type="password" class="form-input" id="adminPassword" placeholder="••••••" maxlength="10"
+               onkeypress="if(event.key==='Enter') verifyPassword()">
+        <p class="password-error" id="passwordError">비밀번호가 올바르지 않습니다</p>
+      </div>
+      <button class="btn btn-primary btn-sm" style="max-width:280px;margin-top:20px;" onclick="verifyPassword()">확인</button>
+    </div>
+
+    <!-- 대시보드 -->
+    <div class="page-content" id="adminSection" style="display:none;">
+      <div class="stats-row fade-in-up">
+        <div class="stat-card" style="flex:1;">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">전체 예약건수</div>
+        </div>
+        <div class="stat-card" style="flex:1;">
+          <div class="stat-value" id="statActive" style="color:var(--gold);">0</div>
+          <div class="stat-label">활성 예약</div>
+        </div>
+      </div>
+
+      <div class="filter-bar fade-in-up">
+        <select class="form-select" id="filterSite" onchange="renderDashboard()">
+          <option value="">전체 현장</option>
+        </select>
+      </div>
+
+      <div class="loading" id="loadingSection">
+        <div class="spinner"></div>
+        <div class="loading-text">데이터를 불러오고 있습니다...</div>
+      </div>
+
+      <div class="fade-in-up" id="scheduleSection" style="display:none;">
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:4px;color:var(--text-primary);">📅 일별 예약 현황</h3>
+        <p style="font-size:12px;color:var(--text-light);margin-bottom:12px;">오늘부터 2주간 일별 예약건수</p>
+        <div style="overflow-x:auto;">
+          <table class="schedule-table" id="scheduleTable">
+            <thead>
+              <tr><th>날짜</th><th>요일</th><th>예약건수</th><th></th></tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="detailSection" style="display:none;margin-top:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="font-size:16px;font-weight:600;color:var(--text-primary);" id="detailTitle">상세 목록</h3>
+          <button class="detail-toggle" onclick="hideDetail()">닫기 ✕</button>
+        </div>
+        <div id="detailCards"></div>
+      </div>
+
+      <div style="text-align:center;margin-top:24px;">
+        <button class="btn btn-outline btn-sm" style="max-width:200px;margin:0 auto;" onclick="loadReservations()">🔄 새로고침</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var adminPassword = '';
+    var allData = [];
+    var dayNames = ['일','월','화','수','목','금','토'];
+
+    function goTo(page, params) {
+      if (!page) return;
+      var url = (page === 'index' ? 'index.html' : page + '.html');
+      if (params) url += '?' + params;
+      window.location.href = url;
+    }
+
+    function verifyPassword() {
+      var pw = document.getElementById('adminPassword').value;
+      fetch(API_URL + '?action=verifyAdmin&password=' + encodeURIComponent(pw))
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          if (r.success) {
+            adminPassword = pw;
+            document.getElementById('passwordSection').style.display = 'none';
+            document.getElementById('adminSection').style.display = 'block';
+            loadConfig();
+            loadReservations();
+          } else {
+            document.getElementById('passwordError').style.display = 'block';
+            document.getElementById('adminPassword').value = '';
+          }
+        })
+        .catch(function() { showToast('인증 오류', 'error'); });
+    }
+
+    function loadConfig() {
+      fetch(API_URL + '?action=getConfig')
+        .then(function(res) { return res.json(); })
+        .then(function(config) {
+          var sel = document.getElementById('filterSite');
+          (config.sites || []).forEach(function(s) {
+            var o = document.createElement('option');
+            o.value = s; o.textContent = s;
+            sel.appendChild(o);
+          });
+        });
+    }
+
+    function loadReservations() {
+      document.getElementById('loadingSection').classList.add('show');
+      document.getElementById('scheduleSection').style.display = 'none';
+
+      fetch(API_URL + '?action=getAllReservations&password=' + encodeURIComponent(adminPassword))
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          document.getElementById('loadingSection').classList.remove('show');
+          if (r.success) { allData = r.data; renderDashboard(); }
+          else showToast(r.message, 'error');
+        })
+        .catch(function() {
+          document.getElementById('loadingSection').classList.remove('show');
+          showToast('데이터 로드 오류', 'error');
+        });
+    }
+
+    function renderDashboard() {
+      var siteFilter = document.getElementById('filterSite').value;
+      var filtered = allData;
+      if (siteFilter) filtered = filtered.filter(function(d) { return d.site === siteFilter; });
+
+      document.getElementById('statTotal').textContent = filtered.length;
+      document.getElementById('statActive').textContent = filtered.filter(function(d) { return d.status === '예약'; }).length;
+
+      var today = new Date();
+      today.setHours(0,0,0,0);
+      var tbody = document.getElementById('scheduleBody');
+      tbody.innerHTML = '';
+
+      for (var i = 0; i < 15; i++) {
+        var d = new Date(today);
+        d.setDate(d.getDate() + i);
+        var dateStr = formatDate(d);
+        var dayName = dayNames[d.getDay()];
+        var isToday = (i === 0);
+        var isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+
+        var count = filtered.filter(function(item) {
+          return item.visitDate === dateStr && item.status === '예약';
+        }).length;
+
+        var countClass = count === 0 ? 'count-zero' : count <= 3 ? 'count-normal' : count <= 6 ? 'count-busy' : 'count-full';
+
+        var tr = document.createElement('tr');
+        if (isToday) tr.className = 'today-row';
+        tr.innerHTML =
+          '<td><span class="schedule-date">' + dateStr + '</span>' + (isToday ? '<span class="today-badge">오늘</span>' : '') + '</td>' +
+          '<td style="color:' + (isWeekend ? '#E53935' : 'var(--text-secondary)') + ';font-weight:' + (isWeekend ? '600' : '400') + ';">' + dayName + '</td>' +
+          '<td><span class="schedule-count ' + countClass + '">' + count + '</span></td>' +
+          '<td>' + (count > 0 ? '<span class="detail-toggle" onclick="showDetail(\'' + dateStr + '\')">상세</span>' : '') + '</td>';
+        tbody.appendChild(tr);
+      }
+
+      document.getElementById('scheduleSection').style.display = 'block';
+      hideDetail();
+    }
+
+    function showDetail(dateStr) {
+      var siteFilter = document.getElementById('filterSite').value;
+      var items = allData.filter(function(d) {
+        return d.visitDate === dateStr && d.status === '예약' && (!siteFilter || d.site === siteFilter);
+      });
+
+      document.getElementById('detailTitle').textContent = dateStr + ' 예약 (' + items.length + '건)';
+      var c = document.getElementById('detailCards');
+      c.innerHTML = '';
+
+      items.forEach(function(item) {
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML =
+          '<div class="card-header">' +
+            '<span class="card-title" style="font-size:13px;">' + esc(item.reservationId) + '</span>' +
+            '<span class="card-badge badge-waiting">' + esc(item.status) + '</span>' +
+          '</div>' +
+          '<div class="card-row"><span class="card-row-label">현장</span><span class="card-row-value" style="font-weight:600;color:var(--navy);">' + esc(item.site) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">담당팀</span><span class="card-row-value">' + esc(item.team) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">성명</span><span class="card-row-value" style="font-weight:600;">' + esc(item.name) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">휴대폰</span><span class="card-row-value">' + esc(item.phone) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">시간</span><span class="card-row-value">' + esc(item.visitTime) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">주소</span><span class="card-row-value" style="font-size:12px;">' + esc(item.address) + '</span></div>' +
+          '<div style="text-align:right;margin-top:8px;"><button class="detail-toggle" style="color:#E53935;border-color:#E53935;" onclick="deleteRow(\'' + esc(item.reservationId) + '\')">삭제</button></div>';
+        c.appendChild(card);
+      });
+
+      document.getElementById('detailSection').style.display = 'block';
+      document.getElementById('detailSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideDetail() {
+      document.getElementById('detailSection').style.display = 'none';
+    }
+
+    function deleteRow(id) {
+      if (!confirm('예약을 삭제하시겠습니까?\n(' + id + ')')) return;
+      fetch(API_URL + '?action=deleteReservation&password=' + encodeURIComponent(adminPassword) + '&id=' + encodeURIComponent(id))
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          if (r.success) { showToast('삭제 완료', 'success'); loadReservations(); }
+          else showToast(r.message, 'error');
+        });
+    }
+
+    function formatDate(d) {
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+
+    function esc(t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+
+    function showToast(m, t) {
+      var el = document.getElementById('toast');
+      el.textContent = m; el.className = 'toast ' + (t || '');
+      el.classList.add('show');
+      setTimeout(function() { el.classList.remove('show'); }, 3000);
+    }
+  </script>
+</body>
+</html>

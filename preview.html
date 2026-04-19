@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대광로제비앙 방문예약 - 미리보기</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --gold: #B8941F;
+      --gold-light: #D4B44A;
+      --gold-dark: #8A6F17;
+      --gold-gradient: linear-gradient(135deg, #D4B44A 0%, #B8941F 50%, #8A6F17 100%);
+      --navy: #1B2A4A;
+      --navy-light: #2C3E5E;
+      --cream: #FAF8F5;
+      --white: #FFFFFF;
+      --text-primary: #1B2A4A;
+      --text-secondary: #5A6577;
+      --text-light: #8C95A4;
+      --border: #E0DCD5;
+      --border-light: #EBE8E3;
+      --shadow-lg: 0 8px 40px rgba(27, 42, 74, 0.15);
+      --shadow-md: 0 4px 20px rgba(27, 42, 74, 0.1);
+      --shadow-gold: 0 4px 20px rgba(184, 148, 31, 0.25);
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #2a2a2a;
+      min-height: 100vh;
+    }
+
+    /* 미리보기 네비 */
+    .preview-nav {
+      background: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid #333;
+      flex-wrap: wrap;
+    }
+    .preview-nav button {
+      padding: 8px 16px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preview-nav button.active,
+    .preview-nav button:hover {
+      background: var(--gold);
+      color: #fff;
+    }
+    .preview-label {
+      text-align: center;
+      padding: 8px;
+      color: #666;
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    /* 프레임 */
+    .phone-frame {
+      width: 420px;
+      margin: 20px auto;
+      background: var(--white);
+      border-radius: 30px;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.4);
+      overflow-x: hidden;
+      overflow-y: auto;
+      height: 800px;
+    }
+
+    /* 웹킷 스크롤바 숨기기 (프레임 내부) */
+    .phone-frame::-webkit-scrollbar {
+      width: 6px;
+    }
+    .phone-frame::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .phone-frame::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.2);
+      border-radius: 3px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ============ 메인 페이지 ============ */
+    .hero {
+      background: var(--navy);
+      min-height: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(ellipse at 30% 50%, rgba(184,148,31,0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 50%, rgba(184,148,31,0.05) 0%, transparent 50%);
+      animation: heroGlow 8s ease-in-out infinite alternate;
+    }
+    @keyframes heroGlow {
+      0% { transform: translate(0,0) scale(1); }
+      100% { transform: translate(-2%,1%) scale(1.05); }
+    }
+    .hero-content { text-align: center; position: relative; z-index: 10; padding: 40px; }
+    .crown {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 2px 8px rgba(184,148,31,0.3));
+      animation: crownFloat 3s ease-in-out infinite;
+    }
+    @keyframes crownFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .crest {
+      width: 80px; height: 80px;
+      background: var(--gold-gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: var(--shadow-gold), 0 0 0 4px rgba(184,148,31,0.15);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .hero-brand {
+      font-size: 36px; font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 8px; margin-bottom: 8px;
+      text-shadow: 0 2px 20px rgba(184,148,31,0.3);
+    }
+    .hero-sub-brand {
+      font-size: 13px; color: rgba(255,255,255,0.5);
+      letter-spacing: 4px; font-weight: 300; margin-bottom: 60px;
+    }
+    .hero-divider {
+      width: 60px; height: 1px;
+      background: var(--gold-gradient);
+      margin: 0 auto 40px;
+      position: relative;
+    }
+    .hero-divider::after {
+      content: '◆'; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); font-size: 8px;
+      color: var(--gold); background: var(--navy); padding: 0 12px;
+    }
+    .btn-group { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 320px; margin: 0 auto; }
+    .btn {
+      display: block; width: 100%; padding: 18px 24px; border: none;
+      border-radius: var(--radius-md); font-family: 'Noto Sans KR', sans-serif;
+      font-size: 16px; font-weight: 600; cursor: pointer;
+      transition: var(--transition); text-align: center; letter-spacing: 2px;
+      text-decoration: none; position: relative; overflow: hidden;
+    }
+    .btn-primary { background: var(--gold-gradient); color: var(--white); box-shadow: var(--shadow-gold); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(184,148,31,0.4); }
+    .btn-primary::after {
+      content: ''; position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.6s;
+    }
+    .btn-primary:hover::after { left: 100%; }
+    .btn-secondary { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); color: var(--white); border-color: rgba(255,255,255,0.4); }
+    .btn-ghost { background: transparent; color: rgba(255,255,255,0.4); font-size: 13px; font-weight: 400; letter-spacing: 1px; padding: 12px; }
+    .btn-ghost:hover { color: rgba(255,255,255,0.7); }
+    .copyright { position: absolute; bottom: 40px; font-size: 11px; color: rgba(255,255,255,0.25); letter-spacing: 2px; }
+
+    /* ============ 서브 페이지 공통 ============ */
+    .header { background: var(--navy); padding: 20px 24px; display: flex; align-items: center; gap: 12px; }
+    .header-back {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08);
+      color: var(--white); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition); text-decoration: none; font-size: 18px;
+    }
+    .header-back:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.4); }
+    .header-title { color: #fff; font-size: 17px; font-weight: 600; letter-spacing: 0.5px; }
+    .header-subtitle { color: var(--gold-light); font-size: 11px; letter-spacing: 1px; font-weight: 400; }
+    .page-content { padding: 24px; background: var(--white); min-height: calc(800px - 76px); }
+    .page-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .page-subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 32px; }
+
+    /* 폼 */
+    .form-group { margin-bottom: 24px; }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; letter-spacing: 0.5px; }
+    .form-label .required { color: var(--gold); margin-left: 2px; }
+    .form-input, .form-select {
+      width: 100%; padding: 14px 16px; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-family: 'Noto Sans KR', sans-serif;
+      font-size: 15px; color: var(--text-primary); background: var(--white);
+      transition: var(--transition); outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,148,31,0.1); }
+    .form-input::placeholder { color: var(--text-light); font-weight: 300; }
+    .form-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%238C95A4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 16px center;
+      padding-right: 40px; cursor: pointer;
+    }
+    .form-hint { font-size: 12px; color: var(--text-light); margin-top: 6px; }
+    .section-divider-gold { height: 2px; background: var(--gold-gradient); margin: 24px 0; }
+    .btn-sm { padding: 12px 20px; font-size: 14px; letter-spacing: 1px; }
+    .btn-navy { background: var(--navy); color: #fff; box-shadow: 0 4px 20px rgba(27,42,74,0.1); }
+    .btn-outline { background: transparent; color: var(--gold); border: 1.5px solid var(--gold); }
+
+    /* 현장 선택 카드 */
+    .site-list { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+    .site-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 20px 24px; background: var(--white);
+      border: 1.5px solid var(--border); border-radius: var(--radius-md);
+      cursor: pointer; transition: var(--transition);
+      text-decoration: none; color: var(--text-primary);
+    }
+    .site-card:hover { border-color: var(--gold); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .site-card:hover .site-icon { background: var(--gold-gradient); color: var(--white); }
+    .site-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--cream); display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0; transition: var(--transition);
+      border: 1px solid var(--border-light);
+    }
+    .site-info { flex: 1; }
+    .site-name { font-size: 17px; font-weight: 600; margin-bottom: 2px; }
+    .site-desc { font-size: 12px; color: var(--text-light); }
+    .site-arrow { font-size: 18px; color: var(--text-light); transition: var(--transition); }
+    .site-card:hover .site-arrow { color: var(--gold); transform: translateX(4px); }
+
+    /* 결과 */
+    .result-screen { text-align: center; padding: 60px 24px; }
+    .result-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; font-size: 36px;
+      background: linear-gradient(135deg, #E8F5E9, #C8E6C9); color: #2E7D5B;
+    }
+    .result-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .result-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 32px; line-height: 1.6; }
+    .result-id {
+      display: inline-block; padding: 12px 24px; background: var(--cream);
+      border-radius: var(--radius-sm); font-size: 18px; font-weight: 700;
+      color: var(--navy); letter-spacing: 1px; margin-bottom: 40px; border: 1px solid var(--border);
+    }
+
+    /* 카드 */
+    .card {
+      background: var(--white); border: 1px solid var(--border-light);
+      border-radius: var(--radius-md); padding: 24px; margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(27,42,74,0.06);
+    }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light);
+    }
+    .card-title { font-size: 15px; font-weight: 600; }
+    .card-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-waiting { background: #FFF3E0; color: #E65100; }
+    .status-expired { background: #ECEFF1; color: #78909C; }
+    .status-cancelled { background: #FFEBEE; color: #C62828; }
+    .card-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+    .card-row-label { color: var(--text-secondary); }
+    .card-row-value { font-weight: 500; }
+    
+    .cancel-btn {
+      display: inline-block; padding: 6px 14px; background: transparent; color: #E53935;
+      border: 1px solid #E53935; border-radius: 6px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: var(--transition); margin-top: 12px;
+    }
+    .cancel-btn:hover { background: #E53935; color: #fff; }
+
+    /* 대시보드 통계 및 테이블 */
+    .stats-row { display: flex; gap: 12px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border-light);
+      border-radius: var(--radius-md); padding: 20px 16px;
+      text-align: center; font-size: 13px; color: var(--text-secondary);
+      box-shadow: 0 2px 8px rgba(27,42,74,0.06); flex:1;
+    }
+    .stat-value { font-size: 32px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .schedule-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .schedule-table th, .schedule-table td {
+      padding: 12px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--border-light);
+    }
+    .schedule-table th { font-size: 12px; font-weight: 600; color: var(--text-light); text-transform: uppercase; }
+    .schedule-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 28px; height: 28px; padding: 0 8px; border-radius: 14px; font-weight: 700; font-size: 14px;
+    }
+    .count-zero { background: var(--cream); color: var(--text-light); }
+    .count-normal { background: #E8F5E9; color: #2E7D32; }
+    .count-busy { background: #FFF3E0; color: #E65100; }
+    .count-full { background: #FFEBEE; color: #C62828; }
+
+    /* 애니메이션 */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in-up { animation: fadeInUp 0.5s ease; }
+  </style>
+</head>
+<body>
+
+  <!-- 미리보기 네비게이션 -->
+  <div class="preview-nav">
+    <button class="active" onclick="showPage('main', this)">메인</button>
+    <button onclick="showPage('sites', this)">현장선택</button>
+    <button onclick="showPage('reservation', this)">방문예약</button>
+    <button onclick="showPage('result', this)">예약완료</button>
+    <button onclick="showPage('inquiry', this)">예약조회</button>
+    <button onclick="showPage('admin', this)">관리자</button>
+  </div>
+  <div class="preview-label">PREVIEW MODE — 로컬 미리보기</div>
+
+  <!-- 폰 프레임 -->
+  <div class="phone-frame">
+
+    <!-- 1. 메인 페이지 -->
+    <div class="page active" id="page-main">
+      <div class="hero">
+        <div class="hero-content fade-in-up">
+          <div>
+            <span class="crown">👑</span>
+            <div class="crest">DK</div>
+          </div>
+          <h1 class="hero-brand">로제비앙</h1>
+          <p class="hero-sub-brand">DAEKWANG LOGEBIEN</p>
+          <div class="hero-divider"></div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="showPage('sites', this)">방문예약</button>
+            <button class="btn btn-secondary" onclick="showPage('inquiry', this)">예약조회</button>
+            <button class="btn btn-ghost" style="margin-top:20px;" onclick="showPage('admin', this)">관리자</button>
+          </div>
+        </div>
+        <p class="copyright">© 대광건영 LOGEBIEN</p>
+      </div>
+    </div>
+
+    <!-- 2. 현장 선택 -->
+    <div class="page" id="page-sites">
+      <div class="header">
+        <div class="header-back" onclick="showPage('main', this)">←</div>
+        <div>
+          <div class="header-title">현장 선택</div>
+          <div class="header-subtitle">SELECT SITE</div>
+        </div>
+      </div>
+      <div class="page-content fade-in-up">
+        <h2 class="page-title">방문할 현장을 선택해주세요</h2>
+        <p class="page-subtitle">현장을 선택하시면 해당 현장의 예약 화면으로 이동합니다</p>
+        <div class="site-list">
+          <div class="site-card" onclick="showPage('reservation', this)">
+            <div class="site-icon">🏗️</div>
+            <div class="site-info">
+              <div class="site-name">현장1</div>
+              <div class="site-desc">방문예약 신청하기</div>
+            </div>
+            <span class="site-arrow">→</span>
+          </div>
+          <div class="site-card" onclick="showPage('reservation', this)">
+            <div class="site-icon">🏢</div>
+            <div class="site-info">
+              <div class="site-name">현장2</div>
+              <div class="site-desc">방문예약 신청하기</div>
+            </div>
+            <span class="site-arrow">→</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 예약 폼 -->
+    <div class="page" id="page-reservation">
+      <div class="header">
+        <div class="header-back" onclick="showPage('sites', this)">←</div>
+        <div>
+          <div class="header-title">방문예약</div>
+          <div class="header-subtitle">VISIT RESERVATION</div>
+        </div>
+      </div>
+      <div class="page-content fade-in-up">
+        <!-- 현장 배지 -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;padding:14px 18px;background:var(--cream);border-radius:var(--radius-sm);border:1px solid var(--border-light);">
+          <span style="font-size: 22px;">🏗️</span>
+          <div>
+            <div style="font-size: 11px; color: var(--text-light); font-weight: 500; letter-spacing: 1px;">현장</div>
+            <div style="font-size: 17px; font-weight: 700; color: var(--navy);">현장1</div>
+          </div>
+        </div>
+
+        <h2 class="page-title">방문예약 신청</h2>
+        <p class="page-subtitle">방문 정보를 입력해주세요</p>
+
+        <div class="form-group">
+          <label class="form-label">담당팀 <span class="required">*</span></label>
+          <select class="form-select">
+            <option>팀을 선택해주세요</option>
+            <option>총괄1팀</option>
+            <option>총괄2팀</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">성명 <span class="required">*</span></label>
+          <input type="text" class="form-input" placeholder="성명을 입력해주세요">
+        </div>
+        <div class="form-group">
+          <label class="form-label">휴대폰 <span class="required">*</span></label>
+          <input type="tel" class="form-input" placeholder="010-0000-0000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">주소 <span class="required">*</span></label>
+          <input type="text" class="form-input" placeholder="현재 거주지 주소를 입력해주세요">
+        </div>
+        <div class="form-group">
+          <label class="form-label">방문희망일 <span class="required">*</span></label>
+          <input type="date" class="form-input">
+          <div class="form-hint">오늘부터 2주 이내 선택 가능</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">방문시간 <span class="required">*</span></label>
+          <select class="form-select">
+            <option value="">시간을 선택해주세요</option>
+            <option value="10:00">오전 10:00</option>
+            <option value="11:00">오전 11:00</option>
+            <option value="14:00">오후 2:00</option>
+          </select>
+          <div class="form-hint">오전 10시 ~ 오후 4시</div>
+        </div>
+        <div class="section-divider-gold"></div>
+        <button class="btn btn-primary" onclick="showPage('result', this)">예약 신청하기</button>
+      </div>
+    </div>
+
+    <!-- 4. 예약 완료 -->
+    <div class="page" id="page-result">
+      <div class="header">
+        <div class="header-back" onclick="showPage('main', this)">←</div>
+        <div>
+          <div class="header-title">방문예약</div>
+          <div class="header-subtitle">VISIT RESERVATION</div>
+        </div>
+      </div>
+      <div class="result-screen show">
+        <div class="result-icon success">✓</div>
+        <h2 class="result-title">예약이 완료되었습니다</h2>
+        <p class="result-subtitle">
+          아래 예약번호를 확인해주세요.<br>
+          예약조회 시 성명과 휴대폰 번호로<br>조회하실 수 있습니다.
+        </p>
+        <div class="result-id">DK-20260416-001</div>
+        <div class="btn-group" style="margin-top: 16px;">
+          <button class="btn btn-navy btn-sm" onclick="showPage('main', this)">홈으로 돌아가기</button>
+          <button class="btn btn-outline btn-sm" onclick="showPage('inquiry', this)">예약 조회하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 예약 조회 -->
+    <div class="page" id="page-inquiry">
+      <div class="header">
+        <div class="header-back" onclick="showPage('main', this)">←</div>
+        <div>
+          <div class="header-title">예약조회</div>
+          <div class="header-subtitle">RESERVATION INQUIRY</div>
+        </div>
+      </div>
+      <div class="page-content fade-in-up">
+        <h2 class="page-title">예약 조회</h2>
+        <p class="page-subtitle">예약 시 입력한 성명과 휴대폰 번호로 조회합니다</p>
+        <div class="form-group">
+          <label class="form-label">성명 <span class="required">*</span></label>
+          <input type="text" class="form-input" placeholder="성명을 입력해주세요">
+        </div>
+        <div class="form-group">
+          <label class="form-label">휴대폰 <span class="required">*</span></label>
+          <input type="tel" class="form-input" placeholder="010-0000-0000">
+        </div>
+        <button class="btn btn-primary" onclick="showSampleResult()">조회하기</button>
+
+        <div id="sampleResults" style="display:none; margin-top: 32px;">
+          <div class="section-divider-gold"></div>
+          <h3 style="font-size:16px; font-weight:600; margin-bottom:16px;">
+            조회 결과 <span style="font-size:13px; color:var(--gold); margin-left:8px;">1건</span>
+          </h3>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">DK-20260416-001</span>
+              <span class="card-badge badge-waiting">예약</span>
+            </div>
+            <div class="card-row">
+              <span class="card-row-label">현장</span>
+              <span class="card-row-value">현장1</span>
+            </div>
+            <div class="card-row">
+              <span class="card-row-label">담당팀</span>
+              <span class="card-row-value">총괄1팀</span>
+            </div>
+            <div class="card-row">
+              <span class="card-row-label">성명</span>
+              <span class="card-row-value">홍길동</span>
+            </div>
+            <div class="card-row">
+              <span class="card-row-label">방문일</span>
+              <span class="card-row-value">2026-04-20</span>
+            </div>
+            <div class="card-row">
+              <span class="card-row-label">방문시간</span>
+              <span class="card-row-value">오전 10:30</span>
+            </div>
+            <div style="text-align:right;">
+              <button class="cancel-btn" onclick="alert('예약이 취소되었습니다.')">예약 취소</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. 관리자 -->
+    <div class="page" id="page-admin">
+      <div class="header">
+        <div class="header-back" onclick="showPage('main', this)">←</div>
+        <div>
+          <div class="header-title">관리자</div>
+          <div class="header-subtitle">ADMINISTRATOR</div>
+        </div>
+      </div>
+      <div class="page-content fade-in-up">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-value">12</div>
+            <div class="stat-label">전체 예약건수</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" style="color:var(--gold);">8</div>
+            <div class="stat-label">활성 예약</div>
+          </div>
+        </div>
+        
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:4px;color:var(--text-primary);">📅 일별 예약 현황</h3>
+        <p style="font-size:12px;color:var(--text-light);margin-bottom:12px;">오늘부터 2주간 일별 예약건수</p>
+        
+        <table class="schedule-table">
+          <thead>
+            <tr><th>날짜</th><th>요일</th><th>예약건수</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(184,148,31,0.06);">
+              <td><span style="font-weight:600;">2026-04-16</span> <span style="display:inline-block;padding:2px 8px;background:var(--gold);color:#fff;border-radius:4px;font-size:10px;font-weight:600;margin-left:6px;">오늘</span></td>
+              <td style="color:var(--text-secondary);">목</td>
+              <td><span class="schedule-count count-busy">5</span></td>
+              <td><span style="display:inline-block;padding:6px 14px;background:var(--cream);color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;">상세</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight:600;">2026-04-17</span></td>
+              <td style="color:var(--text-secondary);">금</td>
+              <td><span class="schedule-count count-normal">2</span></td>
+              <td><span style="display:inline-block;padding:6px 14px;background:var(--cream);color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;">상세</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight:600;">2026-04-18</span></td>
+              <td style="color:#E53935;font-weight:600;">토</td>
+              <td><span class="schedule-count count-full">8</span></td>
+              <td><span style="display:inline-block;padding:6px 14px;background:var(--cream);color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;">상세</span></td>
+            </tr>
+            <tr>
+              <td><span style="font-weight:600;">2026-04-19</span></td>
+              <td style="color:#E53935;font-weight:600;">일</td>
+              <td><span class="schedule-count count-zero">0</span></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function showPage(name, el) {
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+      document.getElementById('page-' + name).classList.add('active');
+      
+      document.querySelectorAll('.preview-nav button').forEach(function(b) { b.classList.remove('active'); });
+      // 네비 버튼 하이라이트
+      var navBtns = document.querySelectorAll('.preview-nav button');
+      var pageNames = ['main', 'sites', 'reservation', 'result', 'inquiry', 'admin'];
+      var idx = pageNames.indexOf(name);
+      if (idx >= 0 && navBtns[idx]) navBtns[idx].classList.add('active');
+    }
+
+    function showSampleResult() {
+      document.getElementById('sampleResults').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

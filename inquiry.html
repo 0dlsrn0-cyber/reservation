@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>예약조회 - 대광로제비앙</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-back" onclick="goTo('index')">←</div>
+      <div>
+        <div class="header-title">예약조회</div>
+        <div class="header-subtitle">RESERVATION INQUIRY</div>
+      </div>
+    </div>
+
+    <div class="page-content fade-in-up" id="searchSection">
+      <h2 class="page-title">예약 조회</h2>
+      <p class="page-subtitle">예약 시 입력한 성명과 휴대폰 번호로 조회합니다</p>
+
+      <div class="form-group" id="searchNameGroup">
+        <label class="form-label">성명 <span class="required">*</span></label>
+        <input type="text" class="form-input" id="searchName" placeholder="성명을 입력해주세요">
+        <div class="form-error">성명을 입력해주세요</div>
+      </div>
+
+      <div class="form-group" id="searchPhoneGroup">
+        <label class="form-label">휴대폰 <span class="required">*</span></label>
+        <input type="tel" class="form-input" id="searchPhone" placeholder="010-0000-0000">
+        <div class="form-error">휴대폰 번호를 입력해주세요</div>
+      </div>
+
+      <button type="button" class="btn btn-primary" onclick="searchReservation()">조회하기</button>
+
+      <div class="loading" id="loadingSection">
+        <div class="spinner"></div>
+        <div class="loading-text">조회 중입니다...</div>
+      </div>
+
+      <div id="resultSection" style="display:none;margin-top:32px;">
+        <div class="section-divider-gold"></div>
+        <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:var(--text-primary);">
+          조회 결과 <span id="resultCount" style="font-size:13px;color:var(--gold);font-weight:500;margin-left:8px;"></span>
+        </h3>
+        <div id="resultCards"></div>
+      </div>
+
+      <div class="empty-state" id="emptySection" style="display:none;">
+        <div class="empty-state-icon">📋</div>
+        <p class="empty-state-text">예약 내역이 없습니다.<br>성명과 휴대폰 번호를 다시 확인해주세요.</p>
+        <button class="btn btn-outline btn-sm" style="max-width:200px;margin:24px auto 0;" onclick="goTo('sites')">방문예약 하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var searchedName = '';
+    var searchedPhone = '';
+
+    function goTo(page, params) {
+      if (!page) return;
+      var url = (page === 'index' ? 'index.html' : page + '.html');
+      if (params) url += '?' + params;
+      window.location.href = url;
+    }
+
+    document.getElementById('searchPhone').addEventListener('input', function(e) {
+      var v = e.target.value.replace(/[^0-9]/g, '');
+      if (v.length > 11) v = v.slice(0, 11);
+      if (v.length > 7) v = v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7);
+      else if (v.length > 3) v = v.slice(0,3)+'-'+v.slice(3);
+      e.target.value = v;
+    });
+
+    function searchReservation() {
+      searchedName = document.getElementById('searchName').value.trim();
+      searchedPhone = document.getElementById('searchPhone').value.trim();
+      var ok = true;
+      if (!searchedName) { document.getElementById('searchNameGroup').classList.add('error'); ok = false; }
+      else { document.getElementById('searchNameGroup').classList.remove('error'); }
+      if (!searchedPhone) { document.getElementById('searchPhoneGroup').classList.add('error'); ok = false; }
+      else { document.getElementById('searchPhoneGroup').classList.remove('error'); }
+      if (!ok) { showToast('성명과 휴대폰 번호를 입력해주세요', 'error'); return; }
+
+      document.getElementById('loadingSection').classList.add('show');
+      document.getElementById('resultSection').style.display = 'none';
+      document.getElementById('emptySection').style.display = 'none';
+
+      var url = API_URL + '?action=getReservation&name=' + encodeURIComponent(searchedName) + '&phone=' + encodeURIComponent(searchedPhone);
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          document.getElementById('loadingSection').classList.remove('show');
+          if (r.success && r.data.length > 0) renderResults(r.data);
+          else if (r.success) document.getElementById('emptySection').style.display = 'block';
+          else showToast(r.message || '오류', 'error');
+        })
+        .catch(function() {
+          document.getElementById('loadingSection').classList.remove('show');
+          showToast('오류가 발생했습니다.', 'error');
+        });
+    }
+
+    function renderResults(data) {
+      document.getElementById('resultSection').style.display = 'block';
+      document.getElementById('resultCount').textContent = data.length + '건';
+      var c = document.getElementById('resultCards');
+      c.innerHTML = '';
+      data.forEach(function(item) {
+        var canCancel = (item.status !== '취소' && item.status !== '만료');
+        var card = document.createElement('div');
+        card.className = 'card fade-in-up';
+        card.innerHTML =
+          '<div class="card-header">' +
+            '<span class="card-title">' + esc(item.reservationId) + '</span>' +
+            '<span class="card-badge ' + getBadge(item.status) + '">' + esc(item.status) + '</span>' +
+          '</div>' +
+          '<div class="card-row"><span class="card-row-label">현장</span><span class="card-row-value">' + esc(item.site) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">담당팀</span><span class="card-row-value">' + esc(item.team) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">성명</span><span class="card-row-value">' + esc(item.name) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">방문일</span><span class="card-row-value">' + esc(item.visitDate) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">방문시간</span><span class="card-row-value">' + esc(item.visitTime) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">접수일시</span><span class="card-row-value" style="font-size:12px;color:var(--text-light);">' + esc(item.datetime) + '</span></div>' +
+          (canCancel ? '<div style="text-align:right;"><button class="cancel-btn" onclick="cancelRes(\'' + esc(item.reservationId) + '\')">예약 취소</button></div>' : '');
+        c.appendChild(card);
+      });
+    }
+
+    function cancelRes(id) {
+      if (!confirm('정말로 예약을 취소하시겠습니까?\n취소 후에는 되돌릴 수 없습니다.')) return;
+      var url = API_URL + '?action=cancelReservation&id=' + encodeURIComponent(id) + '&name=' + encodeURIComponent(searchedName) + '&phone=' + encodeURIComponent(searchedPhone);
+      fetch(url)
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          if (r.success) { showToast('예약이 취소되었습니다.', 'success'); searchReservation(); }
+          else showToast(r.message, 'error');
+        })
+        .catch(function() { showToast('취소 중 오류', 'error'); });
+    }
+
+    function getBadge(s) {
+      if (s === '예약') return 'badge-waiting';
+      if (s === '취소') return 'status-cancelled';
+      if (s === '만료') return 'status-expired';
+      return 'badge-waiting';
+    }
+
+    function esc(t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+
+    function showToast(m, t) {
+      var el = document.getElementById('toast');
+      el.textContent = m; el.className = 'toast ' + (t || '');
+      el.classList.add('show');
+      setTimeout(function() { el.classList.remove('show'); }, 3000);
+    }
+  </script>
+</body>
+</html>

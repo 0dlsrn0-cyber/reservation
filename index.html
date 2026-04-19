@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대광로제비앙 방문예약</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <div class="hero">
+      <div class="hero-content fade-in-up">
+        <div class="hero-logo">
+          <span class="crown">👑</span>
+          <div class="crest">DK</div>
+        </div>
+        <h1 class="hero-brand">로제비앙</h1>
+        <p class="hero-sub-brand">DAEKWANG LOGEBIEN</p>
+        <div class="hero-divider"></div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="goTo('sites')">방문예약</button>
+          <button class="btn btn-secondary" onclick="goTo('inquiry')">예약조회</button>
+          <button class="btn btn-ghost" onclick="goTo('admin')">관리자</button>
+        </div>
+      </div>
+      <p class="copyright" style="position:absolute;bottom:40px;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:2px;">© 대광건영 LOGEBIEN</p>
+    </div>
+  </div>
+
+  <script>
+    function goTo(page, params) {
+      if (!page) return;
+      var url = (page === 'index' ? 'index.html' : page + '.html');
+      if (params) url += '?' + params;
+      window.location.href = url;
+    }
+  </script>
+</body>
+</html>

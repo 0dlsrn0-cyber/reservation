@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>현장 선택 - 대광로제비앙</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-back" onclick="goTo('index')">←</div>
+      <div>
+        <div class="header-title">현장 선택</div>
+        <div class="header-subtitle">SELECT SITE</div>
+      </div>
+    </div>
+
+    <div class="page-content fade-in-up">
+      <h2 class="page-title">방문할 현장을 선택해주세요</h2>
+      <p class="page-subtitle">현장을 선택하시면 해당 현장의 예약 화면으로 이동합니다</p>
+
+      <div class="loading show" id="loadingSection">
+        <div class="spinner"></div>
+        <div class="loading-text">현장 정보를 불러오고 있습니다...</div>
+      </div>
+
+      <div class="site-list" id="siteList"></div>
+    </div>
+  </div>
+
+  <script>
+    var siteIcons = ['🏗️', '🏢', '🏠', '🏘️', '🏙️', '🏛️', '🏗️', '🏢'];
+
+    function goTo(page, params) {
+      if (!page) return;
+      var url = (page === 'index' ? 'index.html' : page + '.html');
+      if (params) url += '?' + params;
+      window.location.href = url;
+    }
+
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch(API_URL + '?action=getConfig')
+        .then(function(res) { return res.json(); })
+        .then(function(config) {
+          document.getElementById('loadingSection').classList.remove('show');
+          var container = document.getElementById('siteList');
+          container.innerHTML = '';
+          config.sites.forEach(function(site, index) {
+            var card = document.createElement('div');
+            card.className = 'site-card';
+            card.onclick = function() { goTo('reservation', 'site=' + encodeURIComponent(site)); };
+            card.innerHTML =
+              '<div class="site-icon">' + siteIcons[index % siteIcons.length] + '</div>' +
+              '<div class="site-info">' +
+                '<div class="site-name">' + escapeHtml(site) + '</div>' +
+                '<div class="site-desc">방문예약 신청하기</div>' +
+              '</div>' +
+              '<span class="site-arrow">→</span>';
+            container.appendChild(card);
+          });
+        })
+        .catch(function() {
+          document.getElementById('loadingSection').classList.remove('show');
+          document.getElementById('siteList').innerHTML =
+            '<div style="text-align:center;padding:40px;color:var(--text-light);">현장 정보를 불러올 수 없습니다.</div>';
+        });
+    });
+  </script>
+</body>
+</html>
