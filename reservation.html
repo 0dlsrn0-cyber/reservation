@@ -87,6 +87,50 @@
         </div>
 
         <div class="section-divider-gold"></div>
+
+        <!-- ① 개인정보 수집 및 이용 동의 -->
+        <div class="consent-box">
+          <div class="consent-title">① 개인정보 수집 및 이용 동의</div>
+          <table class="privacy-table">
+            <thead>
+              <tr><th>수집 항목</th><th>수집·이용 목적</th><th>보유·이용 기간</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>성명, 휴대폰, 주소</td>
+                <td>방문 예약 접수 및 담당자 연락</td>
+                <td>예약일로부터 1년</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="consent-radio-row">
+            <label class="consent-radio-label agree">
+              <input type="radio" name="consentPrivacy" value="agree"> 동의함
+            </label>
+            <label class="consent-radio-label disagree">
+              <input type="radio" name="consentPrivacy" value="disagree"> 동의안함
+            </label>
+          </div>
+          <div class="consent-error" id="errorPrivacy">개인정보 수집·이용에 동의해야 예약 신청이 가능합니다.</div>
+        </div>
+
+        <!-- ② 자발적 방문 확인 동의 -->
+        <div class="consent-box">
+          <div class="consent-title">② 자발적 방문 확인 (방문판매 등에 관한 법률 제2조 제1호)</div>
+          <div class="consent-desc">
+            본인은 사업자의 방문 권유·호객 행위 없이 자발적 의사로 본 홍보관을 방문하였음을 확인합니다.
+          </div>
+          <div class="consent-radio-row">
+            <label class="consent-radio-label agree">
+              <input type="radio" name="consentVisit" value="agree"> 동의함
+            </label>
+            <label class="consent-radio-label disagree">
+              <input type="radio" name="consentVisit" value="disagree"> 동의안함
+            </label>
+          </div>
+          <div class="consent-error" id="errorVisit">자발적 방문 확인에 동의해야 예약 신청이 가능합니다.</div>
+        </div>
+
         <button type="button" class="btn btn-primary" onclick="submitForm()">예약 신청하기</button>
       </form>
     </div>
@@ -128,7 +172,6 @@
       dateInput.min = formatDate(today);
       dateInput.max = formatDate(maxDate);
 
-      // URL 파라미터에서 현장명 읽기
       var params = new URLSearchParams(window.location.search);
       currentSite = params.get('site') || '';
       if (!currentSite) { goTo('sites'); return; }
@@ -141,8 +184,7 @@
           var select = document.getElementById('team');
           (config.teams || []).forEach(function(team) {
             var option = document.createElement('option');
-            option.value = team;
-            option.textContent = team;
+            option.value = team; option.textContent = team;
             select.appendChild(option);
           });
         })
@@ -175,11 +217,20 @@
         var el = document.getElementById(f.id);
         var g = document.getElementById(f.gid);
         var v = true;
-        if (f.type==='select') v = el.value !== '';
-        else if (f.type==='phone') v = /^01[016789]-?\d{3,4}-?\d{4}$/.test(el.value);
+        if (f.type === 'select') v = el.value !== '';
+        else if (f.type === 'phone') v = /^01[016789]-?\d{3,4}-?\d{4}$/.test(el.value);
         else v = el.value.trim() !== '';
         if (!v) { g.classList.add('error'); ok = false; } else { g.classList.remove('error'); }
       });
+
+      var pc = document.querySelector('input[name="consentPrivacy"]:checked');
+      var ep = document.getElementById('errorPrivacy');
+      if (!pc || pc.value !== 'agree') { ep.classList.add('show'); ok = false; } else { ep.classList.remove('show'); }
+
+      var vc = document.querySelector('input[name="consentVisit"]:checked');
+      var ev = document.getElementById('errorVisit');
+      if (!vc || vc.value !== 'agree') { ev.classList.add('show'); ok = false; } else { ev.classList.remove('show'); }
+
       return ok;
     }
 

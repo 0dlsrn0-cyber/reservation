@@ -6,6 +6,20 @@
   <title>현장 선택 - 대광로제비앙</title>
   <link rel="stylesheet" href="style.css">
   <script src="config.js"></script>
+  <style>
+    .site-card {
+      display: flex; align-items: center; gap: 20px;
+      padding: 22px 24px; background: var(--white);
+      border: 1px solid var(--border); border-radius: 4px;
+      cursor: pointer; transition: var(--transition);
+    }
+    .site-card:hover { border-color: var(--gold); box-shadow: 0 4px 20px rgba(184,148,31,0.12); transform: translateY(-2px); }
+    .site-card:hover .site-num { background: var(--gold-gradient); color: #fff; }
+    .site-card:hover .site-arrow { color: var(--gold); transform: translateX(4px); }
+    .site-name { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; letter-spacing: 0.5px; }
+    .site-desc { font-size: 12px; color: var(--text-light); letter-spacing: 0.5px; }
+    .site-arrow { font-size: 16px; color: var(--border); transition: var(--transition); font-weight: 300; }
+  </style>
 </head>
 <body>
   <div class="app-container">
@@ -31,8 +45,6 @@
   </div>
 
   <script>
-    var siteIcons = ['🏗️', '🏢', '🏠', '🏘️', '🏙️', '🏛️', '🏗️', '🏢'];
-
     function goTo(page, params) {
       if (!page) return;
       var url = (page === 'index' ? 'index.html' : page + '.html');
@@ -54,11 +66,12 @@
           var container = document.getElementById('siteList');
           container.innerHTML = '';
           config.sites.forEach(function(site, index) {
+            var num = String(index + 1).padStart(2, '0');
             var card = document.createElement('div');
             card.className = 'site-card';
             card.onclick = function() { goTo('reservation', 'site=' + encodeURIComponent(site)); };
             card.innerHTML =
-              '<div class="site-icon">' + siteIcons[index % siteIcons.length] + '</div>' +
+              '<div class="site-num">' + num + '</div>' +
               '<div class="site-info">' +
                 '<div class="site-name">' + escapeHtml(site) + '</div>' +
                 '<div class="site-desc">방문예약 신청하기</div>' +

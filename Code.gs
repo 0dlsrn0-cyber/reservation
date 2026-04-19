@@ -149,6 +149,17 @@ function getSheet() {
 }
 
 // ============================================================
+// 시간 값 변환 헬퍼 (스프레드시트가 시간을 Date로 읽을 때 처리)
+// ============================================================
+function formatVisitTime(val) {
+  if (!val && val !== 0) return '';
+  if (val instanceof Date) {
+    return Utilities.formatDate(val, 'Asia/Seoul', 'HH:mm');
+  }
+  return String(val).trim();
+}
+
+// ============================================================
 // 설정 시트
 // ============================================================
 function getSettingsSheet() {

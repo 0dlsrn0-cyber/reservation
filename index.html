@@ -5,25 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>대광로제비앙 방문예약</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 400; letter-spacing: 5px;
+      color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 36px;
+    }
+    .hero-rule {
+      width: 48px; height: 1px;
+      background: linear-gradient(90deg, transparent, #B8941F, transparent);
+      margin: 0 auto 28px;
+    }
+    .hero-brand {
+      font-size: 34px; font-weight: 700; color: #D4B44A;
+      letter-spacing: 10px; margin-bottom: 10px; text-indent: 10px;
+    }
+    .hero-system-title {
+      font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.55);
+      letter-spacing: 3px; margin-bottom: 0;
+    }
+    .hero-rule-bottom {
+      width: 48px; height: 1px;
+      background: linear-gradient(90deg, transparent, #B8941F, transparent);
+      margin: 28px auto 48px;
+    }
+    .hero-btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .hero-btn-primary {
+      display: block; width: 100%; padding: 17px 24px;
+      background: linear-gradient(135deg, #D4B44A 0%, #B8941F 50%, #8A6F17 100%);
+      color: #fff; border: none; border-radius: 4px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 600;
+      letter-spacing: 4px; cursor: pointer; transition: all 0.3s ease;
+      position: relative; overflow: hidden;
+    }
+    .hero-btn-primary::after {
+      content: ''; position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transition: 0.5s;
+    }
+    .hero-btn-primary:hover::after { left: 100%; }
+    .hero-btn-primary:hover { box-shadow: 0 6px 24px rgba(184,148,31,0.35); }
+    .hero-btn-secondary {
+      display: block; width: 100%; padding: 16px 24px;
+      background: transparent; color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.18); border-radius: 4px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 400;
+      letter-spacing: 3px; cursor: pointer; transition: all 0.3s ease;
+    }
+    .hero-btn-secondary:hover { border-color: rgba(255,255,255,0.4); color: #fff; background: rgba(255,255,255,0.05); }
+    .hero-btn-ghost {
+      display: block; width: 100%; padding: 12px 24px;
+      background: transparent; color: rgba(255,255,255,0.22);
+      border: none; font-family: 'Noto Sans KR', sans-serif;
+      font-size: 12px; font-weight: 400; letter-spacing: 2px;
+      cursor: pointer; transition: all 0.3s ease; margin-top: 4px;
+    }
+    .hero-btn-ghost:hover { color: rgba(255,255,255,0.5); }
+    .hero-copyright {
+      position: absolute; bottom: 32px;
+      font-size: 10px; color: rgba(255,255,255,0.18); letter-spacing: 3px; font-weight: 300;
+    }
+  </style>
 </head>
 <body>
   <div class="app-container">
     <div class="hero">
-      <div class="hero-content fade-in-up">
-        <div class="hero-logo">
-          <span class="crown">👑</span>
-          <div class="crest">DK</div>
-        </div>
+      <div class="hero-content fade-in-up" style="text-align:center;position:relative;z-index:10;padding:48px 40px;width:100%;max-width:380px;">
+        <p class="hero-eyebrow">Daekwang Construction</p>
+        <div class="hero-rule"></div>
         <h1 class="hero-brand">로제비앙</h1>
-        <p class="hero-sub-brand">DAEKWANG LOGEBIEN</p>
-        <div class="hero-divider"></div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="goTo('sites')">방문예약</button>
-          <button class="btn btn-secondary" onclick="goTo('inquiry')">예약조회</button>
-          <button class="btn btn-ghost" onclick="goTo('admin')">관리자</button>
+        <p class="hero-system-title">사전예약시스템</p>
+        <div class="hero-rule-bottom"></div>
+        <div class="hero-btn-group">
+          <button class="hero-btn-primary" onclick="goTo('sites')">방 문 예 약</button>
+          <button class="hero-btn-secondary" onclick="goTo('inquiry')">예 약 조 회</button>
+          <button class="hero-btn-ghost" onclick="goTo('admin')">관리자</button>
         </div>
       </div>
-      <p class="copyright" style="position:absolute;bottom:40px;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:2px;">© 대광건영 LOGEBIEN</p>
+      <p class="hero-copyright">© DAEKWANG LOGEBIEN</p>
     </div>
   </div>
 
