@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>담당팀 조회 - 대광로제비앙</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+  <style>
+    .team-name-badge {
+      display: inline-block; padding: 4px 14px;
+      background: var(--gold-gradient); color: #fff;
+      border-radius: 20px; font-size: 13px; font-weight: 700;
+      letter-spacing: 1px; margin-left: 8px; vertical-align: middle;
+    }
+    .filter-tabs {
+      display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 8px 18px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1.5px solid var(--border); background: var(--white);
+      color: var(--text-secondary); transition: var(--transition);
+    }
+    .filter-tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .today-section {
+      background: rgba(184,148,31,0.06); border: 1px solid rgba(184,148,31,0.2);
+      border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px;
+    }
+    .today-section-title {
+      font-size: 13px; font-weight: 700; color: var(--gold-dark);
+      margin-bottom: 10px; letter-spacing: 0.5px;
+    }
+    .today-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid rgba(184,148,31,0.15);
+      font-size: 14px;
+    }
+    .today-item:last-child { border-bottom: none; }
+    .today-time { font-weight: 700; color: var(--navy); min-width: 50px; }
+    .today-name { font-weight: 600; flex: 1; }
+    .today-phone { font-size: 13px; color: var(--text-secondary); }
+    .logout-btn {
+      padding: 6px 14px; background: transparent;
+      color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px; font-size: 12px; cursor: pointer;
+      transition: var(--transition); margin-left: auto;
+    }
+    .logout-btn:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header" id="pageHeader">
+      <div class="header-back" onclick="goTo('index')">←</div>
+      <div style="flex:1;">
+        <div class="header-title" id="headerTitle">담당팀 조회</div>
+        <div class="header-subtitle">TEAM INQUIRY</div>
+      </div>
+      <button class="logout-btn" id="logoutBtn" style="display:none;" onclick="logout()">로그아웃</button>
+    </div>
+
+    <!-- 비밀번호 화면 -->
+    <div class="password-screen" id="passwordSection">
+      <div class="password-icon">👥</div>
+      <h2 class="password-title">담당팀 조회</h2>
+      <p class="password-desc">팀을 선택하고 비밀번호를 입력해주세요</p>
+
+      <div style="width:100%;max-width:280px;">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label">담당팀 선택</label>
+          <select class="form-select" id="teamSelect">
+            <option value="">팀을 선택해주세요</option>
+          </select>
+        </div>
+        <div class="password-input-wrap">
+          <input type="password" class="form-input" id="teamPassword" placeholder="비밀번호"
+                 maxlength="20" onkeypress="if(event.key==='Enter') doLogin()">
+          <p class="password-error" id="passwordError">팀 또는 비밀번호가 올바르지 않습니다</p>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" style="max-width:280px;margin-top:20px;" onclick="doLogin()">조회하기</button>
+    </div>
+
+    <!-- 대시보드 -->
+    <div class="page-content" id="dashboardSection" style="display:none;">
+
+      <!-- 통계 -->
+      <div class="stats-row fade-in-up">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotal">0</div>
+          <div>전체 예약</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statActive" style="color:var(--gold);">0</div>
+          <div>활성 예약</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statToday" style="color:var(--success);">0</div>
+          <div>오늘 방문</div>
+        </div>
+      </div>
+
+      <!-- 오늘 방문 요약 -->
+      <div class="today-section" id="todaySection" style="display:none;">
+        <div class="today-section-title">📅 오늘 방문 예정</div>
+        <div id="todayList"></div>
+      </div>
+
+      <!-- 필터 탭 -->
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="setFilter('all', this)">전체</button>
+        <button class="filter-tab" onclick="setFilter('예약', this)">예약중</button>
+        <button class="filter-tab" onclick="setFilter('만료', this)">만료</button>
+        <button class="filter-tab" onclick="setFilter('취소', this)">취소</button>
+      </div>
+
+      <!-- 로딩 -->
+      <div class="loading" id="loadingSection">
+        <div class="spinner"></div>
+        <div class="loading-text">데이터를 불러오고 있습니다...</div>
+      </div>
+
+      <!-- 예약 목록 -->
+      <div id="reservationList"></div>
+
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-state-icon">📋</div>
+        <p class="empty-state-text">해당 조건의 예약이 없습니다.</p>
+      </div>
+
+      <!-- 새로고침 -->
+      <div style="text-align:center;margin-top:16px;">
+        <button class="btn btn-outline btn-sm" style="max-width:200px;margin:0 auto;" onclick="loadData()">🔄 새로고침</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    var currentTeam = '';
+    var currentPassword = '';
+    var allData = [];
+    var currentFilter = 'all';
+
+    function goTo(page, params) {
+      if (!page) return;
+      var url = (page === 'index' ? 'index.html' : page + '.html');
+      if (params) url += '?' + params;
+      window.location.href = url;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch(API_URL + '?action=getAllTeams')
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          var sel = document.getElementById('teamSelect');
+          (r.teams || []).forEach(function(t) {
+            var o = document.createElement('option');
+            o.value = t; o.textContent = t;
+            sel.appendChild(o);
+          });
+        })
+        .catch(function() {
+          document.getElementById('teamSelect').innerHTML =
+            '<option value="">팀 목록을 불러올 수 없습니다</option>';
+        });
+    });
+
+    function doLogin() {
+      var team = document.getElementById('teamSelect').value;
+      var pw = document.getElementById('teamPassword').value;
+      if (!team) { showToast('팀을 선택해주세요', 'error'); return; }
+      if (!pw) { showToast('비밀번호를 입력해주세요', 'error'); return; }
+
+      currentTeam = team;
+      currentPassword = pw;
+
+      fetch(API_URL + '?action=getTeamReservations&team=' + encodeURIComponent(team) + '&password=' + encodeURIComponent(pw))
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          if (r.success) {
+            document.getElementById('passwordError').style.display = 'none';
+            document.getElementById('passwordSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'block';
+            document.getElementById('headerTitle').textContent = team;
+            document.getElementById('logoutBtn').style.display = 'block';
+            allData = r.data;
+            renderDashboard();
+          } else {
+            document.getElementById('passwordError').style.display = 'block';
+            document.getElementById('teamPassword').value = '';
+          }
+        })
+        .catch(function() { showToast('오류가 발생했습니다.', 'error'); });
+    }
+
+    function loadData() {
+      document.getElementById('loadingSection').classList.add('show');
+      fetch(API_URL + '?action=getTeamReservations&team=' + encodeURIComponent(currentTeam) + '&password=' + encodeURIComponent(currentPassword))
+        .then(function(res) { return res.json(); })
+        .then(function(r) {
+          document.getElementById('loadingSection').classList.remove('show');
+          if (r.success) { allData = r.data; renderDashboard(); }
+          else showToast(r.message, 'error');
+        })
+        .catch(function() {
+          document.getElementById('loadingSection').classList.remove('show');
+          showToast('새로고침 오류', 'error');
+        });
+    }
+
+    function setFilter(f, btn) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-tab').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderList();
+    }
+
+    function renderDashboard() {
+      var today = formatDate(new Date());
+      var total = allData.length;
+      var active = allData.filter(function(d) { return d.status === '예약'; }).length;
+      var todayItems = allData.filter(function(d) { return d.visitDate === today && d.status === '예약'; });
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statToday').textContent = todayItems.length;
+
+      // 오늘 방문 요약
+      var todaySection = document.getElementById('todaySection');
+      var todayList = document.getElementById('todayList');
+      if (todayItems.length > 0) {
+        todayList.innerHTML = '';
+        todayItems.sort(function(a, b) { return a.visitTime < b.visitTime ? -1 : 1; });
+        todayItems.forEach(function(item) {
+          var div = document.createElement('div');
+          div.className = 'today-item';
+          div.innerHTML =
+            '<span class="today-time">' + esc(item.visitTime) + '</span>' +
+            '<span class="today-name">' + esc(item.name) + '</span>' +
+            '<span class="today-phone">' + esc(item.phone) + '</span>';
+          todayList.appendChild(div);
+        });
+        todaySection.style.display = 'block';
+      } else {
+        todaySection.style.display = 'none';
+      }
+
+      renderList();
+    }
+
+    function renderList() {
+      var filtered = allData;
+      if (currentFilter !== 'all') {
+        filtered = allData.filter(function(d) { return d.status === currentFilter; });
+      }
+
+      var container = document.getElementById('reservationList');
+      var empty = document.getElementById('emptyState');
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      filtered.forEach(function(item) {
+        var card = document.createElement('div');
+        card.className = 'card fade-in-up';
+        card.innerHTML =
+          '<div class="card-header">' +
+            '<span class="card-title" style="font-size:13px;">' + esc(item.reservationId) + '</span>' +
+            '<span class="card-badge ' + getBadge(item.status) + '">' + esc(item.status) + '</span>' +
+          '</div>' +
+          '<div class="card-row"><span class="card-row-label">현장</span><span class="card-row-value">' + esc(item.site) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">성명</span><span class="card-row-value" style="font-weight:700;">' + esc(item.name) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">휴대폰</span><span class="card-row-value">' +
+            '<a href="tel:' + esc(item.phone) + '" style="color:var(--navy);text-decoration:none;">' + esc(item.phone) + '</a>' +
+          '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">방문일</span><span class="card-row-value" style="color:var(--gold-dark);font-weight:600;">' + esc(item.visitDate) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">방문시간</span><span class="card-row-value">' + esc(item.visitTime) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">주소</span><span class="card-row-value" style="font-size:12px;color:var(--text-secondary);">' + esc(item.address) + '</span></div>' +
+          '<div class="card-row"><span class="card-row-label">접수일시</span><span class="card-row-value" style="font-size:11px;color:var(--text-light);">' + esc(item.datetime) + '</span></div>';
+        container.appendChild(card);
+      });
+    }
+
+    function logout() {
+      currentTeam = ''; currentPassword = ''; allData = [];
+      document.getElementById('dashboardSection').style.display = 'none';
+      document.getElementById('passwordSection').style.display = 'flex';
+      document.getElementById('headerTitle').textContent = '담당팀 조회';
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('teamPassword').value = '';
+      document.getElementById('passwordError').style.display = 'none';
+    }
+
+    function getBadge(s) {
+      if (s === '예약') return 'badge-waiting';
+      if (s === '취소') return 'status-cancelled';
+      if (s === '만료') return 'status-expired';
+      return 'badge-waiting';
+    }
+
+    function formatDate(d) {
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+
+    function esc(t) { var d = document.createElement('div'); d.textContent = t || ''; return d.innerHTML; }
+
+    function showToast(m, t) {
+      var el = document.getElementById('toast');
+      el.textContent = m; el.className = 'toast ' + (t || '');
+      el.classList.add('show');
+      setTimeout(function() { el.classList.remove('show'); }, 3000);
+    }
+  </script>
+</body>
+</html>

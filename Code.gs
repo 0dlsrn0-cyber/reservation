@@ -82,6 +82,12 @@ function handleApiRequest(e) {
       case 'deleteReservation':
         result = deleteReservation(e.parameter.password, e.parameter.id);
         break;
+      case 'getAllTeams':
+        result = { teams: getAllTeams() };
+        break;
+      case 'getTeamReservations':
+        result = getTeamReservations(e.parameter.team, e.parameter.password);
+        break;
       default:
         result = { success: false, message: '알 수 없는 action: ' + action };
     }
@@ -204,8 +210,29 @@ function getSettingsSheet() {
     sheet.getRange('C1').setFontColor('#999999');
     sheet.getRange('E3').setValue('← A열: 현장명, B~열: 해당 현장의 담당팀');
     sheet.getRange('E3').setFontColor('#999999');
+
+    // 팀 비밀번호 섹션 (row 8~)
+    sheet.getRange('A8').setValue('[팀비밀번호]');
+    const teamPwHeader = sheet.getRange('A8');
+    teamPwHeader.setFontWeight('bold'); teamPwHeader.setBackground('#1B2A4A'); teamPwHeader.setFontColor('#D4B44A');
+    sheet.getRange('C8').setValue('← 각 팀의 조회 비밀번호. 팀명은 위 현장설정과 동일하게 입력');
+    sheet.getRange('C8').setFontColor('#999999');
+
+    sheet.getRange('A9').setValue('팀명');
+    sheet.getRange('B9').setValue('비밀번호');
+    const teamColHeader = sheet.getRange('A9:B9');
+    teamColHeader.setFontWeight('bold'); teamColHeader.setBackground('#2C3E5E'); teamColHeader.setFontColor('#FFFFFF');
+
+    sheet.getRange('A10').setValue('총괄1팀'); sheet.getRange('B10').setValue('1111');
+    sheet.getRange('A11').setValue('총괄2팀'); sheet.getRange('B11').setValue('2222');
+    sheet.getRange('A12').setValue('총괄3팀'); sheet.getRange('B12').setValue('3333');
+    sheet.getRange('A13').setValue('영업1팀'); sheet.getRange('B13').setValue('4444');
+    sheet.getRange('A14').setValue('영업2팀'); sheet.getRange('B14').setValue('5555');
+    sheet.getRange('A15').setValue('관리1팀'); sheet.getRange('B15').setValue('6666');
+
+    sheet.setColumnWidth(5, 350);
   }
-  
+
   return sheet;
 }
 
@@ -214,10 +241,9 @@ function getSites() {
   const lastRow = sheet.getLastRow();
   const sites = [];
   for (let i = 4; i <= lastRow; i++) {
-    const siteName = sheet.getRange(i, 1).getValue();
-    if (siteName && String(siteName).trim() !== '') {
-      sites.push(String(siteName).trim());
-    }
+    const siteName = String(sheet.getRange(i, 1).getValue()).trim();
+    if (siteName === '' || siteName === '[팀비밀번호]') break;
+    sites.push(siteName);
   }
   return sites.length > 0 ? sites : ['현장1'];
 }
@@ -477,4 +503,101 @@ function getConfig() {
 
 function getConfigBySite(siteName) {
   return { site: siteName, teams: getTeamsBySite(siteName) };
+}
+
+// ============================================================
+// 담당팀 비밀번호 관리
+// ============================================================
+
+/**
+ * ★ 기존 시트에 팀비밀번호 섹션 추가 ★
+ * 이미 설정 시트가 있는 경우 Apps Script 에디터에서 실행
+ */
+function setupTeamPasswords() {
+  const sheet = getSettingsSheet();
+  // 빈 행 찾기 (현장 데이터 아래)
+  const lastRow = sheet.getLastRow();
+  let insertRow = 8;
+  for (let i = 4; i <= lastRow; i++) {
+    const v = String(sheet.getRange(i, 1).getValue()).trim();
+    if (v === '' || v === '[팀비밀번호]') { insertRow = i + 1; break; }
+    insertRow = i + 2;
+  }
+
+  sheet.getRange(insertRow, 1).setValue('[팀비밀번호]');
+  const h = sheet.getRange(insertRow, 1);
+  h.setFontWeight('bold'); h.setBackground('#1B2A4A'); h.setFontColor('#D4B44A');
+  sheet.getRange(insertRow, 3).setValue('← 팀명은 위 현장설정과 동일하게 입력');
+  sheet.getRange(insertRow, 3).setFontColor('#999999');
+
+  sheet.getRange(insertRow + 1, 1).setValue('팀명');
+  sheet.getRange(insertRow + 1, 2).setValue('비밀번호');
+  const ch = sheet.getRange(insertRow + 1, 1, 1, 2);
+  ch.setFontWeight('bold'); ch.setBackground('#2C3E5E'); ch.setFontColor('#FFFFFF');
+
+  sheet.getRange(insertRow + 2, 1).setValue('팀명예시'); sheet.getRange(insertRow + 2, 2).setValue('1234');
+  sheet.setColumnWidth(5, 350);
+  Logger.log('✅ 팀비밀번호 섹션이 추가되었습니다. 행 ' + insertRow + '부터 확인하세요.');
+}
+
+function getTeamPasswords() {
+  const sheet = getSettingsSheet();
+  const lastRow = sheet.getLastRow();
+  const passwords = {};
+  let inSection = false;
+  for (let i = 1; i <= lastRow; i++) {
+    const a = String(sheet.getRange(i, 1).getValue()).trim();
+    if (a === '[팀비밀번호]') { inSection = true; continue; }
+    if (inSection && a !== '' && a !== '팀명') {
+      passwords[a] = String(sheet.getRange(i, 2).getValue()).trim();
+    }
+  }
+  return passwords;
+}
+
+function getAllTeams() {
+  return Object.keys(getTeamPasswords());
+}
+
+function verifyTeam(teamName, password) {
+  const passwords = getTeamPasswords();
+  const stored = passwords[String(teamName).trim()];
+  return stored !== undefined && stored === String(password).trim();
+}
+
+function getTeamReservations(teamName, password) {
+  if (!verifyTeam(teamName, password)) {
+    return { success: false, message: '비밀번호가 올바르지 않습니다.' };
+  }
+  try {
+    const sheet = getSheet();
+    const data = sheet.getDataRange().getValues();
+    const results = [];
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === '') continue;
+      if (String(data[i][3]).trim() !== String(teamName).trim()) continue;
+
+      let visitDate = data[i][7];
+      if (visitDate instanceof Date) visitDate = Utilities.formatDate(visitDate, 'Asia/Seoul', 'yyyy-MM-dd');
+      let datetime = data[i][1];
+      if (datetime instanceof Date) datetime = Utilities.formatDate(datetime, 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss');
+
+      results.push({
+        reservationId: String(data[i][0]),
+        datetime: String(datetime),
+        site: String(data[i][2]),
+        team: String(data[i][3]),
+        name: String(data[i][4]),
+        phone: String(data[i][5]),
+        address: String(data[i][6]),
+        visitDate: String(visitDate),
+        visitTime: formatVisitTime(data[i][8]),
+        status: String(data[i][9])
+      });
+    }
+    results.sort(function(a, b) { return a.visitDate < b.visitDate ? -1 : 1; });
+    return { success: true, data: results, teamName: teamName };
+  } catch (error) {
+    return { success: false, message: '조회 중 오류: ' + error.message };
+  }
 }
