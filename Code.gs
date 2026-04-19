@@ -244,8 +244,8 @@ function getSites() {
   const sites = [];
   for (let i = 0; i < values.length; i++) {
     const siteName = String(values[i][0]).trim();
-    // 빈 셀이거나 [ 로 시작하는 마커(예: [팀비밀번호])면 종료
-    if (siteName === '' || siteName.startsWith('[')) break;
+    // 빈 셀, '비밀번호' 포함(마커), '팀명' 헤더 → 팀비밀번호 섹션 도달, 중단
+    if (siteName === '' || siteName.includes('비밀번호') || siteName === '팀명') break;
     sites.push(siteName);
   }
   return sites.length > 0 ? sites : ['현장1'];

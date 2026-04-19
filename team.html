@@ -61,25 +61,28 @@
     </div>
 
     <!-- 비밀번호 화면 -->
-    <div class="password-screen" id="passwordSection">
-      <div class="password-icon">👥</div>
-      <h2 class="password-title">담당팀 조회</h2>
-      <p class="password-desc">팀을 선택하고 비밀번호를 입력해주세요</p>
+    <div class="page-content fade-in-up" id="passwordSection" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="width:64px;height:64px;background:var(--cream);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px;border:2px solid var(--border);">👥</div>
+        <h2 style="font-size:18px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">담당팀 조회</h2>
+        <p style="font-size:13px;color:var(--text-secondary);">팀을 선택하고 비밀번호를 입력해주세요</p>
+      </div>
 
-      <div style="width:100%;max-width:280px;">
-        <div class="form-group" style="margin-bottom:16px;">
+      <div style="width:100%;max-width:320px;">
+        <div class="form-group">
           <label class="form-label">담당팀 선택</label>
           <select class="form-select" id="teamSelect">
             <option value="">팀을 선택해주세요</option>
           </select>
         </div>
-        <div class="password-input-wrap">
-          <input type="password" class="form-input" id="teamPassword" placeholder="비밀번호"
+        <div class="form-group">
+          <label class="form-label">비밀번호</label>
+          <input type="password" class="form-input" id="teamPassword" placeholder="비밀번호를 입력해주세요"
                  maxlength="20" onkeypress="if(event.key==='Enter') doLogin()">
-          <p class="password-error" id="passwordError">팀 또는 비밀번호가 올바르지 않습니다</p>
+          <div class="form-error" id="passwordError" style="display:none;">팀 또는 비밀번호가 올바르지 않습니다</div>
         </div>
+        <button class="btn btn-primary" onclick="doLogin()">조 회 하 기</button>
       </div>
-      <button class="btn btn-primary btn-sm" style="max-width:280px;margin-top:20px;" onclick="doLogin()">조회하기</button>
     </div>
 
     <!-- 대시보드 -->
