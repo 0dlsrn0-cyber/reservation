@@ -239,10 +239,13 @@ function getSettingsSheet() {
 function getSites() {
   const sheet = getSettingsSheet();
   const lastRow = sheet.getLastRow();
+  if (lastRow < 4) return ['현장1'];
+  const values = sheet.getRange(4, 1, lastRow - 3, 1).getValues();
   const sites = [];
-  for (let i = 4; i <= lastRow; i++) {
-    const siteName = String(sheet.getRange(i, 1).getValue()).trim();
-    if (siteName === '' || siteName === '[팀비밀번호]') break;
+  for (let i = 0; i < values.length; i++) {
+    const siteName = String(values[i][0]).trim();
+    // 빈 셀이거나 [ 로 시작하는 마커(예: [팀비밀번호])면 종료
+    if (siteName === '' || siteName.startsWith('[')) break;
     sites.push(siteName);
   }
   return sites.length > 0 ? sites : ['현장1'];
@@ -251,16 +254,16 @@ function getSites() {
 function getTeamsBySite(siteName) {
   const sheet = getSettingsSheet();
   const lastRow = sheet.getLastRow();
-  const lastCol = sheet.getLastColumn();
+  if (lastRow < 4) return ['담당팀 없음'];
+  const data = sheet.getRange(4, 1, lastRow - 3, sheet.getLastColumn()).getValues();
   const teams = [];
-  for (let i = 4; i <= lastRow; i++) {
-    const name = sheet.getRange(i, 1).getValue();
-    if (String(name).trim() === String(siteName).trim()) {
-      for (let j = 2; j <= lastCol; j++) {
-        const teamName = sheet.getRange(i, j).getValue();
-        if (teamName && String(teamName).trim() !== '') {
-          teams.push(String(teamName).trim());
-        }
+  for (let i = 0; i < data.length; i++) {
+    const name = String(data[i][0]).trim();
+    if (name === '' || name.startsWith('[')) break;
+    if (name === String(siteName).trim()) {
+      for (let j = 1; j < data[i].length; j++) {
+        const teamName = String(data[i][j]).trim();
+        if (teamName !== '') teams.push(teamName);
       }
       break;
     }
