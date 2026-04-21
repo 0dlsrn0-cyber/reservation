@@ -159,10 +159,30 @@ function getSheet() {
 // ============================================================
 function formatVisitTime(val) {
   if (!val && val !== 0) return '';
+  var hhmm;
   if (val instanceof Date) {
-    return Utilities.formatDate(val, 'Asia/Seoul', 'HH:mm');
+    hhmm = Utilities.formatDate(val, 'Asia/Seoul', 'HH:mm');
+  } else {
+    hhmm = String(val).trim();
   }
-  return String(val).trim();
+  var parts = hhmm.split(':');
+  if (parts.length !== 2) return hhmm;
+  var h = parseInt(parts[0]);
+  var m = parseInt(parts[1]);
+  var prefix, displayH;
+  if (h < 12) {
+    prefix = '오전';
+    displayH = h;
+  } else if (h === 12) {
+    prefix = '낮';
+    displayH = 12;
+  } else {
+    prefix = '오후';
+    displayH = h - 12;
+  }
+  var result = prefix + ' ' + displayH + '시';
+  if (m > 0) result += ' ' + m + '분';
+  return result;
 }
 
 // ============================================================
@@ -392,7 +412,7 @@ function getReservation(name, phone) {
           phone: String(data[i][5]),
           address: String(data[i][6]),
           visitDate: String(visitDate),
-          visitTime: String(data[i][8] || ''),
+          visitTime: formatVisitTime(data[i][8]),
           status: String(data[i][9])
         });
       }
