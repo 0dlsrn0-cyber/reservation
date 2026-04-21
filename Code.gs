@@ -487,7 +487,7 @@ function getAllReservations(password) {
         phone: String(data[i][5]),
         address: String(data[i][6]),
         visitDate: String(visitDate),
-        visitTime: String(data[i][8] || ''),
+        visitTime: formatVisitTime(data[i][8]),
         status: String(data[i][9])
       });
     }
