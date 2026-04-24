@@ -248,7 +248,9 @@
         phone: document.getElementById('phone').value.trim(),
         address: document.getElementById('address').value.trim(),
         visitDate: document.getElementById('visitDate').value,
-        visitTime: document.getElementById('visitTime').value
+        visitTime: document.getElementById('visitTime').value,
+        consentPrivacy: document.querySelector('input[name="consentPrivacy"]:checked').value,
+        consentVisit: document.querySelector('input[name="consentVisit"]:checked').value
       };
 
       document.getElementById('formSection').style.display = 'none';

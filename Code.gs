@@ -124,7 +124,7 @@ function include(filename) {
 // ============================================================
 // 스프레드시트 헬퍼
 // ============================================================
-// 시트 컬럼: 예약번호(0) | 접수일시(1) | 현장(2) | 담당팀(3) | 성명(4) | 휴대폰(5) | 주소(6) | 방문희망일(7) | 방문시간(8) | 상태(9)
+// 시트 컬럼: 예약번호(0) | 접수일시(1) | 현장(2) | 담당팀(3) | 성명(4) | 휴대폰(5) | 주소(6) | 방문희망일(7) | 방문시간(8) | 상태(9) | 개인정보동의(10) | 방문판매법동의(11)
 
 function getSheet() {
   const ss = getSpreadsheet();
@@ -132,13 +132,13 @@ function getSheet() {
   
   if (!sheet) {
     sheet = ss.insertSheet(CONFIG.SHEET_NAME);
-    sheet.appendRow(['예약번호', '접수일시', '현장', '담당팀', '성명', '휴대폰', '주소', '방문희망일', '방문시간', '상태']);
-    
-    const headerRange = sheet.getRange(1, 1, 1, 10);
+    sheet.appendRow(['예약번호', '접수일시', '현장', '담당팀', '성명', '휴대폰', '주소', '방문희망일', '방문시간', '상태', '개인정보동의', '방문판매법동의']);
+
+    const headerRange = sheet.getRange(1, 1, 1, 12);
     headerRange.setFontWeight('bold');
     headerRange.setBackground('#1B2A4A');
     headerRange.setFontColor('#FFFFFF');
-    
+
     sheet.setColumnWidth(1, 180);
     sheet.setColumnWidth(2, 160);
     sheet.setColumnWidth(3, 120);
@@ -149,6 +149,8 @@ function getSheet() {
     sheet.setColumnWidth(8, 130);
     sheet.setColumnWidth(9, 100);
     sheet.setColumnWidth(10, 80);
+    sheet.setColumnWidth(11, 90);
+    sheet.setColumnWidth(12, 90);
   }
   
   return sheet;
@@ -369,7 +371,9 @@ function submitReservation(formData) {
       formData.address,
       formData.visitDate,
       formData.visitTime,
-      '예약'
+      '예약',
+      formData.consentPrivacy === 'agree' ? '동의' : '미동의',
+      formData.consentVisit === 'agree' ? '동의' : '미동의'
     ]);
     
     return { success: true, reservationId: reservationId, message: '예약이 완료되었습니다.' };
@@ -413,11 +417,13 @@ function getReservation(name, phone) {
           address: String(data[i][6]),
           visitDate: String(visitDate),
           visitTime: formatVisitTime(data[i][8]),
-          status: String(data[i][9])
+          status: String(data[i][9]),
+          consentPrivacy: String(data[i][10] || ''),
+          consentVisit: String(data[i][11] || '')
         });
       }
     }
-    
+
     return { success: true, data: results };
   } catch (error) {
     return { success: false, message: '조회 중 오류: ' + error.message };
@@ -488,10 +494,12 @@ function getAllReservations(password) {
         address: String(data[i][6]),
         visitDate: String(visitDate),
         visitTime: formatVisitTime(data[i][8]),
-        status: String(data[i][9])
+        status: String(data[i][9]),
+        consentPrivacy: String(data[i][10] || ''),
+        consentVisit: String(data[i][11] || '')
       });
     }
-    
+
     results.reverse();
     return { success: true, data: results };
   } catch (error) {
@@ -615,7 +623,9 @@ function getTeamReservations(teamName, password) {
         address: String(data[i][6]),
         visitDate: String(visitDate),
         visitTime: formatVisitTime(data[i][8]),
-        status: String(data[i][9])
+        status: String(data[i][9]),
+        consentPrivacy: String(data[i][10] || ''),
+        consentVisit: String(data[i][11] || '')
       });
     }
     results.sort(function(a, b) { return a.visitDate < b.visitDate ? -1 : 1; });

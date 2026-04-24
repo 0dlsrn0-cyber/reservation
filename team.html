@@ -273,10 +273,15 @@
       filtered.forEach(function(item) {
         var card = document.createElement('div');
         card.className = 'card fade-in-up';
+        var cp = item.consentPrivacy === '동의' ? '<span style="color:#2E7D32;font-weight:600;">동의</span>' : '<span style="color:#E53935;">미동의</span>';
+        var cv = item.consentVisit === '동의' ? '<span style="color:#2E7D32;font-weight:600;">동의</span>' : '<span style="color:#E53935;">미동의</span>';
         card.innerHTML =
           '<div class="card-header">' +
             '<span class="card-title" style="font-size:13px;">' + esc(item.reservationId) + '</span>' +
-            '<span class="card-badge ' + getBadge(item.status) + '">' + esc(item.status) + '</span>' +
+            '<div style="text-align:right;">' +
+              '<span class="card-badge ' + getBadge(item.status) + '">' + esc(item.status) + '</span>' +
+              '<div style="font-size:11px;color:var(--text-light);margin-top:4px;">개인정보 ' + cp + ' · 방문판매법 ' + cv + '</div>' +
+            '</div>' +
           '</div>' +
           '<div class="card-row"><span class="card-row-label">현장</span><span class="card-row-value">' + esc(item.site) + '</span></div>' +
           '<div class="card-row"><span class="card-row-label">성명</span><span class="card-row-value" style="font-weight:700;">' + esc(item.name) + '</span></div>' +
